@@ -1,0 +1,151 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+// Palette d'accent « Cadence » (orange brûlé) déclinée pour Angular Material
+$cadence-accent: (
+  50: #fff3ec, 100: #ffe0cc, 200: #ffc199, 300: #ff9f66, 400: #f47c3c, 500: #e8590c, 600: #d14f0a,
+  700: #b04208, 800: #8e3506, 900: #6b2804,
+  contrast: (50: #1b1d2a, 100: #1b1d2a, 200: #1b1d2a, 300: #1b1d2a, 400: #fff, 500: #fff, 600: #fff,
+    700: #fff, 800: #fff, 900: #fff),
+);
+$cadence-ink: (
+  50: #eef0f6, 100: #d5d8e6, 200: #b9bdd3, 300: #9ca1bf, 400: #868cb0, 500: #6f76a1, 600: #5c628a,
+  700: #474c6c, 800: #33374f, 900: #1b1d2a,
+  contrast: (50: #1b1d2a, 100: #1b1d2a, 200: #1b1d2a, 300: #1b1d2a, 400: #fff, 500: #fff, 600: #fff,
+    700: #fff, 800: #fff, 900: #fff),
+);
+
+$primary: mat.define-palette($cadence-accent, 500);
+$accent: mat.define-palette($cadence-ink, 700);
+$warn: mat.define-palette(mat.$red-palette, 600);
+$typography: mat.define-typography-config($font-family: "'Inter Variable', system-ui, sans-serif");
+
+$light-theme: mat.define-light-theme((
+  color: (primary: $primary, accent: $accent, warn: $warn),
+  typography: $typography,
+  density: -1,
+));
+$dark-theme: mat.define-dark-theme((
+  color: (primary: mat.define-palette($cadence-accent, 400), accent: mat.define-palette($cadence-ink, 200), warn: $warn),
+  typography: $typography,
+  density: -1,
+));
+
+@include mat.all-component-themes($light-theme);
+
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+}
+
+// Jetons de design utilisés par les composants
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --surface-2: #f0eee9;
+  --sidebar: #16182a;
+  --sidebar-ink: #c9cbe0;
+  --sidebar-active: rgba(255, 255, 255, 0.08);
+  --ink: #1b1d2a;
+  --ink-soft: #3a3d52;
+  --muted: #6b6f80;
+  --border: #e6e3dc;
+  --border-strong: #cfcbc1;
+  --accent: #e8590c;
+  --accent-soft: #fdeee4;
+  --danger: #e5484d;
+  --warning: #f08c00;
+  --info: #2f6feb;
+  --success: #1f9d63;
+  --type-story: #1f9d63;
+  --type-bug: #e5484d;
+  --type-task: #2f6feb;
+  --status-todo: #5f6577;
+  --status-todo-bg: #eceef3;
+  --status-progress: #1d5bd6;
+  --status-progress-bg: #e3ecfd;
+  --status-review: #7442e0;
+  --status-review-bg: #efe7fd;
+  --status-done: #16804f;
+  --status-done-bg: #e0f4ea;
+  --shadow-sm: 0 1px 2px rgba(27, 29, 42, 0.06), 0 1px 1px rgba(27, 29, 42, 0.04);
+  --shadow-md: 0 8px 24px rgba(27, 29, 42, 0.08);
+  --radius: 12px;
+  color-scheme: light;
+}
+
+.dark-theme {
+  --bg: #0f1017;
+  --surface: #181a24;
+  --surface-2: #222532;
+  --sidebar: #0b0c12;
+  --sidebar-ink: #a9acc2;
+  --ink: #eceef5;
+  --ink-soft: #c7cad8;
+  --muted: #9095ab;
+  --border: #2a2d3b;
+  --border-strong: #3a3e50;
+  --accent: #f47c3c;
+  --accent-soft: rgba(244, 124, 60, 0.14);
+  --status-todo: #aab0c2;
+  --status-todo-bg: rgba(170, 176, 194, 0.14);
+  --status-progress: #7aa5ff;
+  --status-progress-bg: rgba(122, 165, 255, 0.14);
+  --status-review: #b79bff;
+  --status-review-bg: rgba(183, 155, 255, 0.14);
+  --status-done: #4fd19a;
+  --status-done-bg: rgba(79, 209, 154, 0.14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease;
+}
+
+h1, h2, h3, h4 { letter-spacing: -0.015em; color: var(--ink); }
+
+a { color: var(--accent); }
+
+// Blocs réutilisables
+.page { padding: 28px 32px 48px; max-width: 1400px; margin: 0 auto; }
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.page-header h1 { margin: 0; font-size: 24px; font-weight: 700; }
+.page-header p { margin: 4px 0 0; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.card-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px; }
+.muted { color: var(--muted); }
+.mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.spacer { flex: 1; }
+.row { display: flex; align-items: center; gap: 8px; }
+.issue-key { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+
+// Ajustements Angular Material
+.mat-mdc-button-base, .mdc-tab__text-label, .mat-mdc-select, .mat-mdc-form-field, .mat-mdc-option,
+.mat-mdc-menu-item, .mat-mdc-input-element, .mdc-button__label { letter-spacing: normal !important; }
+.mat-mdc-select-value-text app-priority-icon, .mat-mdc-option app-priority-icon { vertical-align: middle; margin-right: 4px; }
+.mat-mdc-dialog-container .mdc-dialog__surface { border-radius: 16px !important; }
+.mat-mdc-snack-bar-container.snack-error { --mdc-snackbar-container-color: #b42318; --mdc-snackbar-supporting-text-color: #fff; }
+.mat-mdc-snack-bar-container.snack-success { --mdc-snackbar-container-color: #146c43; --mdc-snackbar-supporting-text-color: #fff; }
+.mat-mdc-form-field { width: 100%; }
+.dark-theme .mat-mdc-dialog-container .mdc-dialog__surface { background: var(--surface); }
+
+// Barre de défilement discrète
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; border: 2px solid var(--bg); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
