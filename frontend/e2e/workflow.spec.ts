@@ -11,11 +11,11 @@ test.describe('Parcours développeur', () => {
     await page.getByTestId('nav-tableau').click();
     await page.getByText("Suivi en temps réel d'un dossier sinistre").click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText('En revue', { exact: true })).toBeVisible();
+    await expect(dialog.locator('app-status-chip')).toHaveText('En revue');
 
     await dialog.getByTestId('move-DONE').click();
 
-    await expect(dialog.getByText('Terminé', { exact: true })).toBeVisible();
+    await expect(dialog.locator('app-status-chip')).toHaveText('Terminé');
     await dialog.getByRole('button', { name: 'Fermer' }).click();
     await expect(page.getByTestId('column-DONE').getByText("Suivi en temps réel d'un dossier sinistre")).toBeVisible();
   });
