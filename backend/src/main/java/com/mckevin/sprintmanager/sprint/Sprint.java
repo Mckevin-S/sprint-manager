@@ -91,10 +91,7 @@ public class Sprint {
         if (status != SprintStatus.PLANNED) {
             throw new BusinessRuleException("SPRINT_NOT_PLANNED", "Seul un sprint planifié peut être démarré.");
         }
-        String effectiveGoal = goal != null && !goal.isBlank() ? goal : this.goal;
-        if (effectiveGoal == null || effectiveGoal.isBlank()) {
-            throw new BusinessRuleException("SPRINT_GOAL_REQUIRED", "Définissez un objectif de sprint avant de le démarrer.");
-        }
+        String effectiveGoal = requireGoal(goal);
         if (startDate == null || endDate == null || !endDate.isAfter(startDate)) {
             throw new BusinessRuleException("INVALID_SPRINT_DATES", "La date de fin doit être postérieure à la date de début.");
         }
@@ -107,6 +104,15 @@ public class Sprint {
         this.committedPoints = committedPoints;
         this.startedAt = now;
         this.status = SprintStatus.ACTIVE;
+    }
+
+    /** Objectif retenu au démarrage : celui fourni, sinon celui défini en planification. */
+    public String requireGoal(String requested) {
+        String effectiveGoal = requested != null && !requested.isBlank() ? requested : this.goal;
+        if (effectiveGoal == null || effectiveGoal.isBlank()) {
+            throw new BusinessRuleException("SPRINT_GOAL_REQUIRED", "Définissez un objectif de sprint avant de le démarrer.");
+        }
+        return effectiveGoal;
     }
 
     public void close(int completedPoints, Instant now) {
