@@ -32,8 +32,10 @@ services:
 
   frontend:
     build: ./frontend
+    # Le front n'est exposé qu'une fois l'API prête (healthcheck du back-end) : pas de 502 au démarrage
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: on-failure
     ports:
       - "4200:80"

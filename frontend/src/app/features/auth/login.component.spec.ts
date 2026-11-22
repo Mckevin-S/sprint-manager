@@ -47,6 +47,16 @@ describe('LoginComponent', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent).toContain('incorrect');
   });
 
+  it('explique que le serveur démarre en cas de 502', () => {
+    auth.login.and.returnValue(throwError(() => new HttpErrorResponse({ status: 502 })));
+    const fixture = setup();
+    fixture.componentInstance.form.setValue({ email: 'lea@test.fr', password: 'secret123' });
+
+    fixture.componentInstance.submit();
+
+    expect(fixture.componentInstance.error()).toContain('Le serveur démarre');
+  });
+
   it("n'appelle pas l'API si le formulaire est invalide", () => {
     const fixture = setup();
     fixture.componentInstance.submit();

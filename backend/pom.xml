@@ -13,7 +13,7 @@
 
     <groupId>com.mckevin</groupId>
     <artifactId>sprint-manager</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <name>sprint-manager</name>
     <description>Outil de pilotage Scrum : backlog, sprints, tableau Kanban, burndown et vélocité</description>
 
