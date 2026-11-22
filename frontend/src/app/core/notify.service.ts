@@ -9,6 +9,9 @@ export function errorMessage(error: unknown): string {
     if (error.status === 0) {
       return "Le serveur est injoignable. Vérifiez que l'API est démarrée.";
     }
+    if (error.status === 502 || error.status === 503 || error.status === 504) {
+      return "Le serveur démarre ou redémarre. Réessayez dans quelques secondes.";
+    }
     const problem = error.error as Problem | null;
     return problem?.detail ?? problem?.title ?? `Erreur ${error.status}`;
   }
