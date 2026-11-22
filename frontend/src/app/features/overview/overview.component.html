@@ -1,0 +1,116 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Vue d'ensemble</h1>
+      <p>{{ context.project()?.description }}</p>
+    </div>
+  </div>
+
+  @if (overview(); as o) {
+    @if (o.activeSprint; as s) {
+      <section class="kpis">
+        <div class="card kpi accent">
+          <span class="label">{{ s.name }}</span>
+          <span class="value">{{ o.completionPercent }}<small>%</small></span>
+          <div class="bar"><span [style.width.%]="o.completionPercent"></span></div>
+          <span class="hint">{{ s.donePoints }} / {{ s.totalPoints }} points terminés</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">Jours restants</span>
+          <span class="value">{{ s.daysRemaining }}</span>
+          <span class="hint">Fin le {{ s.endDate | date: 'EEEE d MMMM' }}</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">Tickets du sprint</span>
+          <span class="value">{{ s.issueCount }}</span>
+          <span class="hint">{{ o.statuses[1].issues }} en cours · {{ o.statuses[2].issues }} en revue</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">Backlog</span>
+          <span class="value">{{ o.backlog.issues }}</span>
+          <span class="hint" [class.warn]="o.backlog.unestimatedStories > 0">
+            {{ o.backlog.estimatedPoints }} pts estimés · {{ o.backlog.unestimatedStories }} story(s) à estimer
+          </span>
+        </div>
+      </section>
+    } @else {
+      <div class="card banner">
+        <app-empty-state icon="rocket_launch" title="Aucun sprint en cours"
+                         message="Planifiez des tickets dans un sprint depuis le backlog, puis démarrez-le.">
+          <a mat-flat-button color="primary" routerLink="../backlog">Planifier un sprint</a>
+        </app-empty-state>
+      </div>
+    }
+
+    <div class="grid">
+      <section class="card panel burndown">
+        <div class="panel-head"><h2>Burndown</h2><a routerLink="../rapports" class="link">Tous les rapports</a></div>
+        @if (o.activeSprint?.goal) {
+          <p class="goal"><mat-icon>flag</mat-icon>{{ o.activeSprint?.goal }}</p>
+        }
+        @if (chart(); as config) {
+          <app-chart [config]="config" [height]="260" label="Burndown du sprint en cours" />
+        } @else {
+          <p class="muted">Le graphique apparaîtra au démarrage du sprint.</p>
+        }
+      </section>
+
+      <section class="card panel">
+        <div class="panel-head"><h2>Répartition du sprint</h2></div>
+        <div class="stack" role="img" aria-label="Répartition des tickets par statut">
+          @for (st of o.statuses; track st.status) {
+            <span [class]="'seg ' + st.status.toLowerCase()" [style.width.%]="share(st.issues)"></span>
+          }
+        </div>
+        <ul class="legend">
+          @for (st of o.statuses; track st.status) {
+            <li><span [class]="'dot ' + st.status.toLowerCase()"></span>{{ st.label }}<span class="spacer"></span>
+              <strong>{{ st.issues }}</strong><span class="muted pts">{{ st.points }} pts</span></li>
+          }
+        </ul>
+        <h3>Tickets ouverts par type</h3>
+        <ul class="types">
+          @for (t of o.openByType; track t.type) {
+            <li><app-issue-type-icon [type]="t.type" /> {{ t.label }}<span class="spacer"></span><strong>{{ t.issues }}</strong></li>
+          }
+        </ul>
+      </section>
+
+      <section class="card panel">
+        <div class="panel-head"><h2>Charge de l'équipe</h2><span class="muted small">points restants dans le sprint</span></div>
+        <ul class="workload">
+          @for (w of o.workload; track w.member.id) {
+            <li>
+              <app-avatar [user]="w.member" [size]="32" />
+              <div class="who">
+                <span class="name">{{ w.member.fullName }}</span>
+                <div class="load"><span [style.width.%]="(w.points * 100) / maxLoad()"></span></div>
+              </div>
+              <div class="nums"><strong>{{ w.points }} pts</strong><span class="muted">{{ w.issues }} tickets · {{ w.inProgress }} en cours</span></div>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="card panel">
+        <div class="panel-head"><h2>Activité récente</h2><a routerLink="../activite" class="link">Tout voir</a></div>
+        <ul class="feed">
+          @for (a of o.recentActivity; track a.id) {
+            <li>
+              <app-avatar [user]="a.actor" [size]="26" />
+              <p><strong>{{ a.actor.fullName }}</strong> {{ a.summary }}
+                @if (a.issueKey) {
+                  <span class="issue-key">{{ a.issueKey }}</span>
+                }
+                <br /><span class="muted small">{{ a.occurredAt | relativeTime }}</span></p>
+            </li>
+          } @empty {
+            <li class="muted">Rien pour le moment.</li>
+          }
+        </ul>
+      </section>
+    </div>
+  } @else {
+    <mat-progress-bar mode="indeterminate" />
+  }
+</div>
