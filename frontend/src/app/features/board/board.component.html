@@ -1,0 +1,73 @@
+<div class="page">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  } @else {
+  @if (sprint(); as s) {
+    <div class="page-header">
+      <div>
+        <div class="row"><h1>{{ s.name }}</h1><span class="live">En cours</span></div>
+        <p class="goal"><mat-icon>flag</mat-icon>{{ s.goal }}</p>
+      </div>
+      <div class="sprint-meta">
+        <div class="metric"><span class="value">{{ s.daysRemaining }}</span><span class="label">jours restants</span></div>
+        <div class="metric"><span class="value">{{ s.donePoints }}<small>/{{ s.totalPoints }}</small></span><span class="label">points terminés</span></div>
+        @if (context.canPlan()) {
+          <button mat-stroked-button (click)="closeSprint()" data-testid="close-sprint"><mat-icon>task_alt</mat-icon> Clôturer</button>
+        }
+      </div>
+    </div>
+    <div class="progress" role="progressbar" [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100"
+         [attr.aria-label]="'Avancement du sprint : ' + progress() + ' %'">
+      <span [style.width.%]="progress()"></span>
+    </div>
+    <p class="dates muted">Du {{ s.startDate | date: 'd MMMM' }} au {{ s.endDate | date: 'd MMMM yyyy' }} · {{ progress() }} % des points terminés</p>
+
+    <div class="filters">
+      <button class="filter" [class.on]="onlyMine()" (click)="onlyMine.set(!onlyMine()); assigneeFilter.set(null)">
+        <mat-icon>person</mat-icon> Mes tickets
+      </button>
+      <div class="avatars" aria-label="Filtrer par membre">
+        @for (u of assignees(); track u.id) {
+          <button class="avatar-filter" [class.on]="assigneeFilter() === u.id" (click)="toggleAssignee(u.id)" [matTooltip]="u.fullName"
+                  [attr.aria-pressed]="assigneeFilter() === u.id" [attr.aria-label]="'Filtrer sur ' + u.fullName">
+            <app-avatar [user]="u" [size]="30" />
+          </button>
+        }
+      </div>
+      <span class="spacer"></span>
+      <span class="muted wip"><mat-icon>speed</mat-icon> Limite WIP : {{ board()?.wipLimit }} ticket(s) en cours par personne</span>
+    </div>
+
+    <div class="columns" cdkDropListGroup>
+      @for (column of board()!.columns; track column.status) {
+        <section class="column" [class]="'column ' + column.status.toLowerCase()" [class.over-wip]="wipExceeded(column)">
+          <header>
+            <span class="dot"></span>
+            <h2>{{ column.label }}</h2>
+            <span class="count">{{ column.issues.length }}</span>
+            <span class="spacer"></span>
+            <span class="pts" matTooltip="Points dans la colonne">{{ column.points }} pts</span>
+          </header>
+          <div class="drop" cdkDropList [cdkDropListData]="column.issues" (cdkDropListDropped)="drop($event, column.status)"
+               [attr.data-testid]="'column-' + column.status">
+            @for (issue of visible(column); track issue.id) {
+              <app-issue-card cdkDrag [cdkDragData]="issue" [issue]="issue" (opened)="open($event)">
+                <div *cdkDragPlaceholder class="placeholder"></div>
+              </app-issue-card>
+            } @empty {
+              <p class="empty-col">Déposez une carte ici</p>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  } @else {
+    <div class="card">
+      <app-empty-state icon="view_kanban" title="Aucun sprint en cours"
+                       message="Planifiez un sprint depuis le backlog puis démarrez-le pour faire vivre le tableau.">
+        <a mat-flat-button color="primary" routerLink="../backlog">Aller au backlog</a>
+      </app-empty-state>
+    </div>
+  }
+  }
+</div>

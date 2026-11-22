@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sprint
+      POSTGRES_USER: sprint
+      POSTGRES_PASSWORD: sprint
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U sprint -d sprint"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/sprint
+      DB_USERNAME: sprint
+      DB_PASSWORD: sprint
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-change-me-in-production}
+      DEMO_DATA: ${DEMO_DATA:-true}
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    restart: on-failure
+    ports:
+      - "4200:80"
+
+volumes:
+  db-data:

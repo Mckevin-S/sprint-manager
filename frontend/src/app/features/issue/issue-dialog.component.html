@@ -1,0 +1,136 @@
+@if (saving()) {
+  <mat-progress-bar mode="indeterminate" class="saving" />
+}
+@if (detail(); as d) {
+  <div class="head">
+    <app-issue-type-icon [type]="d.issue.type" />
+    <span class="issue-key">{{ d.issue.key }}</span>
+    <span class="muted type">{{ typeLabels[d.issue.type] }}</span>
+    <span class="spacer"></span>
+    @if (context.isProductOwner()) {
+      <button mat-icon-button (click)="remove()" matTooltip="Supprimer le ticket" aria-label="Supprimer le ticket">
+        <mat-icon>delete_outline</mat-icon>
+      </button>
+    }
+    <button mat-icon-button (click)="close()" aria-label="Fermer"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="body">
+    <section class="content">
+      <input class="title" [(ngModel)]="title" (blur)="saveTitle()" (keydown.enter)="saveTitle()" [readonly]="!canEditContent()"
+             aria-label="Titre du ticket" maxlength="160" />
+
+      <h3>Description</h3>
+      @if (editingDescription()) {
+        <mat-form-field appearance="outline" class="desc-field">
+          <textarea matInput [(ngModel)]="description" rows="8" aria-label="Description" cdkFocusInitial></textarea>
+        </mat-form-field>
+        <div class="row">
+          <button mat-flat-button color="primary" (click)="saveDescription()">Enregistrer</button>
+          <button mat-button (click)="editingDescription.set(false); description = d.description ?? ''">Annuler</button>
+        </div>
+      } @else {
+        @if (d.description) {
+          <div class="description" [class.editable]="canEditContent()" (click)="canEditContent() && editingDescription.set(true)"
+               (keydown.enter)="canEditContent() && editingDescription.set(true)" [attr.tabindex]="canEditContent() ? 0 : null">{{ d.description }}</div>
+        } @else {
+          <div class="description muted" [class.editable]="canEditContent()" (click)="canEditContent() && editingDescription.set(true)"
+               (keydown.enter)="canEditContent() && editingDescription.set(true)" [attr.tabindex]="canEditContent() ? 0 : null">{{ canEditContent() ? 'Ajouter une description…' : 'Pas de description.' }}</div>
+        }
+      }
+
+      <mat-tab-group animationDuration="150ms" class="tabs">
+        <mat-tab [label]="'Commentaires (' + d.comments.length + ')'">
+          <div class="comments">
+            @for (c of d.comments; track c.id) {
+              <div class="comment">
+                <app-avatar [user]="c.author" [size]="30" />
+                <div>
+                  <div class="comment-head"><strong>{{ c.author.fullName }}</strong>
+                    <span class="muted" [matTooltip]="(c.createdAt | date: 'dd/MM/yyyy HH:mm') ?? ''">{{ c.createdAt | relativeTime }}</span></div>
+                  <p>{{ c.body }}</p>
+                </div>
+              </div>
+            } @empty {
+              <p class="muted">Aucun commentaire.</p>
+            }
+            <div class="new-comment">
+              <mat-form-field appearance="outline">
+                <textarea matInput [(ngModel)]="newComment" rows="2" placeholder="Ajouter un commentaire…"
+                          aria-label="Nouveau commentaire" (keydown.control.enter)="addComment()"></textarea>
+                <mat-hint>Ctrl + Entrée pour envoyer</mat-hint>
+              </mat-form-field>
+              <button mat-flat-button color="primary" (click)="addComment()" [disabled]="!newComment.trim()">Commenter</button>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab label="Historique">
+          <ol class="history">
+            @for (h of d.history; track h.id) {
+              <li><app-avatar [user]="h.actor" [size]="22" /><span><strong>{{ h.actor.fullName }}</strong> {{ h.summary }}</span>
+                <span class="muted when">{{ h.occurredAt | date: 'dd/MM HH:mm' }}</span></li>
+            }
+          </ol>
+        </mat-tab>
+      </mat-tab-group>
+    </section>
+
+    <aside class="details">
+      <div class="status-block">
+        <app-status-chip [status]="d.issue.status" />
+        <div class="moves">
+          @for (s of d.nextStatuses; track s) {
+            <button mat-stroked-button (click)="move(s)" [disabled]="saving()" [attr.data-testid]="'move-' + s">
+              <mat-icon>arrow_forward</mat-icon>{{ statusLabels[s] }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <dl>
+        <dt>Assigné à</dt>
+        <dd>
+          <mat-select [value]="d.issue.assignee?.id ?? null" (selectionChange)="update({ assigneeId: $event.value })"
+                      aria-label="Assigné à" class="inline-select">
+            <mat-option [value]="null">Personne</mat-option>
+            @for (m of context.members(); track m.user.id) {
+              <mat-option [value]="m.user.id">{{ m.user.fullName }}</mat-option>
+            }
+          </mat-select>
+        </dd>
+        <dt>Points</dt>
+        <dd>
+          <mat-select [value]="d.issue.storyPoints ?? null" (selectionChange)="update({ storyPoints: $event.value })"
+                      aria-label="Points" class="inline-select">
+            <mat-option [value]="null">Non estimé</mat-option>
+            @for (p of points; track p) {
+              <mat-option [value]="p">{{ p }}</mat-option>
+            }
+          </mat-select>
+        </dd>
+        <dt>Priorité</dt>
+        <dd>
+          <mat-select [value]="d.issue.priority" (selectionChange)="setPriority($event.value)" [disabled]="!canEditContent()"
+                      aria-label="Priorité" class="inline-select">
+            <mat-select-trigger><app-priority-icon [priority]="d.issue.priority" /> {{ priorityLabels[d.issue.priority] }}</mat-select-trigger>
+            @for (p of priorities; track p) {
+              <mat-option [value]="p"><app-priority-icon [priority]="p" /> {{ priorityLabels[p] }}</mat-option>
+            }
+          </mat-select>
+        </dd>
+        <dt>Sprint</dt>
+        <dd>{{ d.sprintName ?? 'Backlog' }}</dd>
+        <dt>Rapporteur</dt>
+        <dd class="row"><app-avatar [user]="d.reporter" [size]="22" /> {{ d.reporter.fullName }}</dd>
+        <dt>Créé</dt>
+        <dd>{{ d.createdAt | date: 'd MMM yyyy à HH:mm' }}</dd>
+        @if (d.resolvedAt) {
+          <dt>Terminé</dt>
+          <dd>{{ d.resolvedAt | date: 'd MMM yyyy à HH:mm' }}</dd>
+        }
+      </dl>
+    </aside>
+  </div>
+} @else {
+  <div class="loading"><mat-progress-bar mode="indeterminate" /></div>
+}

@@ -1,0 +1,19 @@
+package com.mckevin.sprintmanager.activity;
+
+public enum ActivityType {
+    ISSUE_CREATED,
+    ISSUE_UPDATED,
+    ISSUE_DELETED,
+    STATUS_CHANGED,
+    ASSIGNEE_CHANGED,
+    POINTS_CHANGED,
+    COMMENT_ADDED,
+    SPRINT_CREATED,
+    SPRINT_STARTED,
+    SPRINT_CLOSED,
+    SCOPE_ADDED,
+    SCOPE_REMOVED,
+    MEMBER_ADDED,
+    MEMBER_ROLE_CHANGED,
+    MEMBER_REMOVED
+}
