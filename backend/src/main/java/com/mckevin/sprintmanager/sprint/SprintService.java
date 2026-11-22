@@ -103,6 +103,7 @@ public class SprintService {
         Membership me = access.requireRole(projectId, userId, "démarrer un sprint",
                 ProjectRole.SCRUM_MASTER, ProjectRole.PRODUCT_OWNER);
         Sprint sprint = load(projectId, sprintId);
+        sprint.requireGoal(request.goal());
         sprints.findFirstByProjectIdAndStatus(projectId, SprintStatus.ACTIVE).ifPresent(active -> {
             throw new BusinessRuleException("SPRINT_ALREADY_ACTIVE",
                     active.getName() + " est déjà en cours. Clôturez-le avant d'en démarrer un autre.");
