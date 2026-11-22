@@ -2,6 +2,13 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [1.0.2] – 2026-11-22
+
+### Corrigé
+
+- Docker Compose : le front attend que l'API soit prête, ce qui évite une erreur 502 à la connexion pendant le démarrage.
+- Message clair (« Le serveur démarre… ») au lieu d'une erreur 502, 503 ou 504.
+
 ## [1.0.1] – 2026-11-22
 
 ### Corrigé
