@@ -1,0 +1,112 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Backlog</h1>
+      <p>Priorisez par glisser-déposer et planifiez les prochains sprints.</p>
+    </div>
+    <div class="row">
+      <label class="search">
+        <mat-icon>search</mat-icon>
+        <input [(ngModel)]="search" placeholder="Rechercher un ticket" aria-label="Rechercher un ticket" />
+      </label>
+      @if (context.canPlan()) {
+        <button mat-stroked-button (click)="createSprint()" data-testid="create-sprint"><mat-icon>add</mat-icon> Nouveau sprint</button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  } @else {
+    <div cdkDropListGroup class="lists">
+      @for (sprint of openSprints(); track sprint.id) {
+        <section class="panel card" [class.active]="sprint.status === 'ACTIVE'">
+          <header>
+            <button class="toggle" (click)="toggle(sprint.id)" [attr.aria-expanded]="!collapsed()[sprint.id]"
+                    [attr.aria-label]="'Afficher ou masquer ' + sprint.name">
+              <mat-icon>{{ collapsed()[sprint.id] ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            </button>
+            <div class="title">
+              <div class="row">
+                <h2>{{ sprint.name }}</h2>
+                <span class="badge" [class.live]="sprint.status === 'ACTIVE'">{{ sprint.status === 'ACTIVE' ? 'En cours' : 'Planifié' }}</span>
+                @if (sprint.startDate) {
+                  <span class="muted small">{{ sprint.startDate | date: 'd MMM' }} → {{ sprint.endDate | date: 'd MMM' }}</span>
+                }
+              </div>
+              @if (sprint.goal) {
+                <p class="goal">{{ sprint.goal }}</p>
+              }
+            </div>
+            <span class="spacer"></span>
+            <span class="stat">{{ listOf(sprint.id).length }} tickets</span>
+            <span class="stat strong">{{ points(sprint.id) }} pts</span>
+            @if (sprint.status === 'ACTIVE') {
+              <a mat-stroked-button routerLink="../tableau">Voir le tableau</a>
+            } @else if (context.canPlan()) {
+              <button mat-flat-button color="primary" (click)="startSprint(sprint)" [attr.data-testid]="'start-' + sprint.id">Démarrer</button>
+              <button mat-icon-button [matMenuTriggerFor]="sprintMenu" aria-label="Actions du sprint"><mat-icon>more_vert</mat-icon></button>
+              <mat-menu #sprintMenu="matMenu">
+                <button mat-menu-item (click)="createIssue(sprint.id)"><mat-icon>add</mat-icon>Ajouter un ticket</button>
+                <button mat-menu-item (click)="deleteSprint(sprint)"><mat-icon>delete_outline</mat-icon>Supprimer le sprint</button>
+              </mat-menu>
+            }
+          </header>
+          @if (!collapsed()[sprint.id]) {
+            <div class="rows" cdkDropList [cdkDropListData]="'' + sprint.id" (cdkDropListDropped)="drop($event)"
+                 [cdkDropListDisabled]="!context.canPlan()">
+              @for (issue of filtered(sprint.id); track issue.id) {
+                <ng-container *ngTemplateOutlet="row; context: { $implicit: issue }" />
+              } @empty {
+                <p class="drop-hint">Glissez des tickets du backlog ici pour planifier le sprint.</p>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      <section class="panel card">
+        <header>
+          <button class="toggle" (click)="toggle('backlog')" [attr.aria-expanded]="!collapsed()['backlog']" aria-label="Afficher ou masquer le backlog">
+            <mat-icon>{{ collapsed()['backlog'] ? 'chevron_right' : 'expand_more' }}</mat-icon>
+          </button>
+          <div class="title"><h2>Backlog produit</h2>
+            @if (unestimated() > 0) {
+              <p class="warn"><mat-icon>info</mat-icon>{{ unestimated() }} story(s) à estimer avant planification</p>
+            }
+          </div>
+          <span class="spacer"></span>
+          <span class="stat">{{ backlog().length }} tickets</span>
+          <span class="stat strong">{{ backlogPoints() }} pts</span>
+          <button mat-stroked-button (click)="createIssue()"><mat-icon>add</mat-icon> Ticket</button>
+        </header>
+        @if (!collapsed()['backlog']) {
+          <div class="rows" cdkDropList cdkDropListData="backlog" (cdkDropListDropped)="drop($event)"
+               [cdkDropListDisabled]="!context.canPlan()" data-testid="backlog-list">
+            @for (issue of filtered('backlog'); track issue.id) {
+              <ng-container *ngTemplateOutlet="row; context: { $implicit: issue }" />
+            } @empty {
+              <app-empty-state icon="inventory_2" title="Backlog vide" message="Toutes les idées sont planifiées. Ajoutez de nouveaux tickets quand le besoin évolue." />
+            }
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>
+
+<ng-template #row let-issue>
+  <div class="issue-row" cdkDrag [cdkDragData]="issue" (click)="open(issue)" (keydown.enter)="open(issue)" tabindex="0"
+       role="button" [attr.data-testid]="'row-' + issue.key">
+    @if (context.canPlan()) {
+      <mat-icon class="handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
+    }
+    <app-issue-type-icon [type]="issue.type" />
+    <span class="issue-key">{{ issue.key }}</span>
+    <span class="row-title">{{ issue.title }}</span>
+    <app-status-chip [status]="issue.status" />
+    <app-priority-icon [priority]="issue.priority" />
+    <app-points-badge [points]="issue.storyPoints" />
+    <app-avatar [user]="issue.assignee" [size]="24" />
+  </div>
+</ng-template>
