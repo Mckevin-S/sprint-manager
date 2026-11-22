@@ -21,6 +21,8 @@
         <java.version>21</java.version>
         <springdoc.version>2.6.0</springdoc.version>
         <jacoco.version>0.8.12</jacoco.version>
+        <!-- 1.21.4 minimum : compatibilité avec Docker Engine 29 (API 1.44) -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <dependencies>
